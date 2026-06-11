@@ -74,7 +74,10 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
             throw new BusinessException(CodeMsg.REVERSAL_NOT_BY_CREATOR);
         }
 
-        // 必须已入账
+        // 必须已入账 (已冲正的不可重复冲正)
+        if (record.getReviewStatus() == RecordConstant.REVIEW_REVERSED) {
+            throw new BusinessException(CodeMsg.REVERSAL_ALREADY_REVERSED);
+        }
         if (record.getReviewStatus() != RecordConstant.REVIEW_POSTED) {
             throw new BusinessException(CodeMsg.REVERSAL_RECORD_NOT_POSTED);
         }
@@ -123,6 +126,17 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
                 throw new BusinessException(CodeMsg.RECORD_NOT_PENDING);
             }
 
+            // 获取原始记录并校验
+            RecordDetailDO original = recordDetailService.getById(req.getOriginalRecordId());
+            if (original == null) {
+                throw new BusinessException(CodeMsg.NOT_FIND_DATA);
+            }
+
+            // 防止重复冲正: 检查原记录是否已被冲正
+            if (original.getReviewStatus() == RecordConstant.REVIEW_REVERSED) {
+                throw new BusinessException(CodeMsg.REVERSAL_ALREADY_REVERSED);
+            }
+
             // 标记申请为已通过
             req.setReviewStatus(RecordConstant.REVERSAL_APPROVED);
             req.setReviewerId(reviewerId);
@@ -131,10 +145,6 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
             updateById(req);
 
             // 标记原记录为已冲正
-            RecordDetailDO original = recordDetailService.getById(req.getOriginalRecordId());
-            if (original == null) {
-                throw new BusinessException(CodeMsg.NOT_FIND_DATA);
-            }
             original.setReviewStatus(RecordConstant.REVIEW_REVERSED);
             recordDetailService.updateById(original);
 
@@ -157,7 +167,7 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
 
             int reversalId = handler.handleAdd(original.getUserId(), reversalBO);
 
-            // 关联并自动入账
+            // 关联并自动入账, 标记为冲正条目 (originalRecordId != null 排除预算重复计算)
             RecordDetailDO counterEntry = recordDetailService.getById(reversalId);
             if (counterEntry != null) {
                 counterEntry.setOriginalRecordId(original.getId());
@@ -171,14 +181,15 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
                 updateById(req);
             }
 
-            // 递减预算缓存
+            // 递减预算 (仅支出记录需要恢复预算)
             if (original.getAmount() != null && original.getAmount() < 0) {
                 String ym = new SimpleDateFormat("yyyy-MM").format(original.getOccurTime());
                 BigDecimal expense = BigDecimal.valueOf(Math.abs(original.getAmount()));
                 budgetService.atomicDecrementUsed(bookId, ym, expense);
             }
 
-            auditLogService.log(bookId, reviewerId, "REVERSAL_APPROVE", "RECORD", original.getId(), null);
+            auditLogService.log(bookId, reviewerId, "REVERSAL_APPROVE", "RECORD", original.getId(),
+                    "{\"reversalRecordId\":" + reversalId + ",\"originalAmount\":" + original.getAmount() + "}");
         } finally {
             redisLockUtil.releaseLock(lockKey);
         }

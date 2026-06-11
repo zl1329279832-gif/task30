@@ -65,6 +65,23 @@ public class RecordReviewServiceImpl implements RecordReviewService {
     public void approveRecord(Integer bookId, Integer reviewerId, Long recordId, String remark) {
         sharedBookService.checkPermission(bookId, reviewerId, RecordConstant.PERM_REVIEW);
 
+        // 先获取记录, 用于后续校验
+        RecordDetailDO record = recordDetailService.getById(recordId);
+        if (record == null) {
+            throw new BusinessException(CodeMsg.NOT_FIND_DATA);
+        }
+
+        // 校验: 记录所在月份是否已月结 (已月结禁止普通审核入账, 须走冲正流程)
+        String yearMonth = formatYearMonth(record.getOccurTime());
+        if (monthlyClosingService.isMonthClosed(bookId, yearMonth)) {
+            throw new BusinessException(CodeMsg.RECORD_MONTH_CLOSED);
+        }
+
+        // 校验: 记录创建者当前是否仍有entry权限 (权限降级后旧记录不应再入账)
+        if (!sharedBookService.hasPermission(bookId, record.getUserId(), RecordConstant.PERM_ENTRY)) {
+            throw new BusinessException(CodeMsg.RECORD_CREATOR_PERMISSION_REVOKED);
+        }
+
         // 原子更新状态: 仅当 review_status=1(待审核) 时才更新
         boolean updated = updateReviewStatus(recordId, RecordConstant.REVIEW_PENDING, RecordConstant.REVIEW_POSTED,
                 reviewerId, remark);
@@ -72,11 +89,8 @@ public class RecordReviewServiceImpl implements RecordReviewService {
             throw new BusinessException(CodeMsg.RECORD_NOT_PENDING);
         }
 
-        RecordDetailDO record = recordDetailService.getById(recordId);
-
         // 预算原子递增 (仅支出)
         if (record.getAmount() != null && record.getAmount() < 0) {
-            String yearMonth = formatYearMonth(record.getOccurTime());
             BigDecimal expense = BigDecimal.valueOf(Math.abs(record.getAmount()));
             budgetService.atomicIncrementUsed(bookId, yearMonth, expense);
         }

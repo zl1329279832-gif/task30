@@ -88,6 +88,11 @@ public enum CodeMsg {
     MONTH_CLOSED_CANNOT_MODIFY(700401, "已结算月份不可修改或新增记录"),
     PENDING_RECORDS_EXIST(700402, "该月仍有待审核记录，请先完成审核"),
 
+    // 月结与审核交叉 格式7004xx
+    RECORD_MONTH_CLOSED(700403, "记录所在月份已结算，不可审核入账，请通过冲正流程处理"),
+    RECORD_CREATOR_PERMISSION_REVOKED(700404, "记录创建者权限已变更，无法审核入账"),
+    REVERSAL_ALREADY_REVERSED(700405, "该记录已被冲正，不可重复冲正"),
+
     // 冲正相关 格式7005xx
     REVERSAL_NOT_BY_CREATOR(700500, "仅原始记录创建者可申请冲正"),
     REVERSAL_MONTH_NOT_CLOSED(700501, "冲正仅在月度结算后允许"),
