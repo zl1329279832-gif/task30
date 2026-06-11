@@ -37,4 +37,6 @@ public class RecordDetailBO {
     private String tag;
 
     private String remark;
+
+    private Integer payerUserId;
 }

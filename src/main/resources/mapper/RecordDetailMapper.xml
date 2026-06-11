@@ -140,4 +140,40 @@
         GROUP BY
             record_book_id
     </select>
+
+    <!-- 共享账本按月查询（含审核状态过滤） -->
+    <select id="queryByMonthAndSharedBook" resultType="cn.jackbin.SimpleRecord.dto.SharedRecordDetailDTO">
+        SELECT t1.*, t2.name AS recordAccountName,
+               t3.name AS sourceAccountName, t4.name AS targetAccountName,
+               t5.nickname AS recorderName, t6.nickname AS payerName
+        FROM tb_record_detail t1
+        LEFT JOIN tb_record_account t2 ON t1.record_account_id = t2.id
+        LEFT JOIN tb_record_account t3 ON t1.source_account_id = t3.id
+        LEFT JOIN tb_record_account t4 ON t1.target_account_id = t4.id
+        LEFT JOIN tb_user t5 ON t1.user_id = t5.id
+        LEFT JOIN tb_user t6 ON t1.payer_user_id = t6.id
+        WHERE t1.record_book_id = #{recordBookId}
+          <if test="auditStatus != null">
+              AND t1.audit_status = #{auditStatus}
+          </if>
+          AND date_format(t1.occur_time, '%Y-%m') = date_format(#{date}, '%Y-%m')
+          AND t1.delete_time IS NULL
+        ORDER BY t1.occur_time DESC, t1.create_time DESC
+    </select>
+
+    <!-- 共享账本按月、按成员汇总支出 -->
+    <select id="queryMemberSpendSummary" resultType="cn.jackbin.SimpleRecord.dto.MemberSpendSummaryDTO">
+        SELECT t1.user_id AS userId, t2.nickname,
+               SUM(ABS(t1.amount)) AS totalSpend,
+               SUM(CASE WHEN t1.payer_user_id IS NOT NULL AND t1.payer_user_id != t1.user_id
+                        THEN ABS(t1.amount) ELSE 0 END) AS advancedAmount
+        FROM tb_record_detail t1
+        LEFT JOIN tb_user t2 ON t1.user_id = t2.id
+        WHERE t1.record_book_id = #{recordBookId}
+          AND t1.audit_status = 2
+          AND t1.amount &lt; 0
+          AND date_format(t1.occur_time, '%Y-%m') = #{yearMonth}
+          AND t1.delete_time IS NULL
+        GROUP BY t1.user_id
+    </select>
 </mapper>

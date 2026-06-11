@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.BudgetMapper">
+
+    <select id="queryBudgetExecution" resultType="cn.jackbin.SimpleRecord.dto.BudgetExecutionDTO">
+        SELECT b.id AS budgetId, b.budget_type AS budgetType, b.category_name AS categoryName,
+               b.member_user_id AS memberUserId, b.year_month AS yearMonth,
+               b.budget_amount AS budgetAmount, b.warn_percent AS warnPercent,
+               IFNULL(SUM(ABS(r.amount)), 0) AS spentAmount
+        FROM tb_budget b
+        LEFT JOIN tb_record_detail r ON r.record_book_id = b.record_book_id
+            AND date_format(r.occur_time, '%Y-%m') = b.year_month
+            AND r.audit_status = 2
+            AND r.amount &lt; 0
+            AND r.delete_time IS NULL
+        WHERE b.record_book_id = #{recordBookId}
+          AND b.year_month = #{yearMonth}
+          AND b.budget_type = 1
+          AND b.delete_time IS NULL
+        GROUP BY b.id
+    </select>
+
+    <select id="queryBudgetExecutionByCategory" resultType="cn.jackbin.SimpleRecord.dto.BudgetExecutionDTO">
+        SELECT b.id AS budgetId, b.budget_type AS budgetType, b.category_name AS categoryName,
+               b.member_user_id AS memberUserId, b.year_month AS yearMonth,
+               b.budget_amount AS budgetAmount, b.warn_percent AS warnPercent,
+               IFNULL(SUM(ABS(r.amount)), 0) AS spentAmount
+        FROM tb_budget b
+        LEFT JOIN tb_record_detail r ON r.record_book_id = b.record_book_id
+            AND date_format(r.occur_time, '%Y-%m') = b.year_month
+            AND r.record_category = b.category_name
+            AND r.audit_status = 2
+            AND r.amount &lt; 0
+            AND r.delete_time IS NULL
+        WHERE b.record_book_id = #{recordBookId}
+          AND b.year_month = #{yearMonth}
+          AND b.budget_type = 2
+          AND b.delete_time IS NULL
+        GROUP BY b.id
+    </select>
+
+    <select id="queryBudgetExecutionByMember" resultType="cn.jackbin.SimpleRecord.dto.BudgetExecutionDTO">
+        SELECT b.id AS budgetId, b.budget_type AS budgetType, b.category_name AS categoryName,
+               b.member_user_id AS memberUserId, u.nickname AS memberName,
+               b.year_month AS yearMonth,
+               b.budget_amount AS budgetAmount, b.warn_percent AS warnPercent,
+               IFNULL(SUM(ABS(r.amount)), 0) AS spentAmount
+        FROM tb_budget b
+        LEFT JOIN tb_record_detail r ON r.record_book_id = b.record_book_id
+            AND date_format(r.occur_time, '%Y-%m') = b.year_month
+            AND r.user_id = b.member_user_id
+            AND r.audit_status = 2
+            AND r.amount &lt; 0
+            AND r.delete_time IS NULL
+        LEFT JOIN tb_user u ON u.id = b.member_user_id
+        WHERE b.record_book_id = #{recordBookId}
+          AND b.year_month = #{yearMonth}
+          AND b.budget_type = 3
+          AND b.delete_time IS NULL
+        GROUP BY b.id
+    </select>
+
+</mapper>

@@ -64,6 +64,24 @@ public enum CodeMsg {
     RECORD_BOOK_RELATED(700019, "账户仍有记账记录关联"),
     RECORD_ACCOUNT_RELATED(700019, "账户仍有记账记录关联"),
     RECORD_ACCOUNT_NAME_REPEAT(700020, "记账账户名称不可重复"),
+
+    // 共享账本相关 格式800 xxx
+    SHARED_BOOK_NOT_FOUND(800001, "共享账本不存在"),
+    SHARED_BOOK_NO_PERMISSION(800002, "无此共享账本操作权限"),
+    SHARED_BOOK_MEMBER_EXISTS(800003, "该用户已是账本成员"),
+    SHARED_BOOK_INVITE_EXPIRED(800004, "邀请已过期"),
+    SHARED_BOOK_INVITE_INVALID(800005, "邀请码无效"),
+    SHARED_BOOK_MONTH_LOCKED(800006, "该月份已锁定，禁止修改"),
+    SHARED_BOOK_RECORD_NOT_PENDING(800007, "该记录不在待审核状态"),
+    SHARED_BOOK_CANNOT_AUDIT_SELF(800008, "不能审核自己的记录"),
+    BUDGET_EXCEEDED(800009, "预算已超限"),
+    BUDGET_NOT_FOUND(800010, "预算记录不存在"),
+    REVERSAL_NOT_FOUND(800011, "冲正申请不存在"),
+    REVERSAL_ALREADY_PROCESSED(800012, "冲正申请已处理"),
+    SETTLEMENT_NOT_FOUND(800013, "结算记录不存在"),
+    SETTLEMENT_ALREADY_DONE(800014, "该结算已完成"),
+    SHARED_BOOK_OWNER_CANNOT_LEAVE(800015, "账本创建者不能退出"),
+    SHARED_BOOK_RECORD_APPROVED_NO_EDIT(800016, "已入账记录不可直接修改"),
     ;
 
     private final int retCode;

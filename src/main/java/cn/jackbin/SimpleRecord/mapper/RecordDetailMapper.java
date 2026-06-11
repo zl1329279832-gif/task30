@@ -2,12 +2,15 @@ package cn.jackbin.SimpleRecord.mapper;
 
 import cn.jackbin.SimpleRecord.dto.MonthRecordAnalysisDTO;
 import cn.jackbin.SimpleRecord.dto.RecordDetailBookSumDTO;
+import cn.jackbin.SimpleRecord.dto.SharedRecordDetailDTO;
+import cn.jackbin.SimpleRecord.dto.MemberSpendSummaryDTO;
 import cn.jackbin.SimpleRecord.dto.SpendCategoryTotalDTO;
 import cn.jackbin.SimpleRecord.entity.RecordDetailDO;
 import cn.jackbin.SimpleRecord.dto.RecordDetailDTO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -62,4 +65,18 @@ public interface RecordDetailMapper extends BaseMapper<RecordDetailDO> {
      * 获取账本的总计
      */
     List<RecordDetailBookSumDTO> querySumByRecordBookIds(Integer recordTypeId, List<Integer> recordBookIds);
+
+    /**
+     * 共享账本按月查询（含审核状态过滤）
+     */
+    IPage<SharedRecordDetailDTO> queryByMonthAndSharedBook(Page<?> page,
+                                                            @Param("recordBookId") Integer recordBookId,
+                                                            @Param("auditStatus") Integer auditStatus,
+                                                            @Param("date") Date date);
+
+    /**
+     * 共享账本按月、按成员汇总支出
+     */
+    List<MemberSpendSummaryDTO> queryMemberSpendSummary(@Param("recordBookId") Integer recordBookId,
+                                                         @Param("yearMonth") String yearMonth);
 }

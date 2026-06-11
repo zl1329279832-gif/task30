@@ -13,6 +13,7 @@ import cn.jackbin.SimpleRecord.service.DictItemService;
 import cn.jackbin.SimpleRecord.service.DictService;
 import cn.jackbin.SimpleRecord.service.RecordBookService;
 import cn.jackbin.SimpleRecord.service.RecordDetailService;
+import cn.jackbin.SimpleRecord.service.SharedBookMemberService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -43,6 +44,8 @@ public class RecordBookServiceImpl extends ServiceImpl<RecordBookMapper, RecordB
     private DictService dictService;
     @Autowired
     private RecordDetailService recordDetailService;
+    @Autowired
+    private SharedBookMemberService sharedBookMemberService;
 
     @Override
     public void getByPage(Integer userId, PageBO<RecordBookAnalysisDTO> pageBO) {
@@ -162,5 +165,33 @@ public class RecordBookServiceImpl extends ServiceImpl<RecordBookMapper, RecordB
         // 新增的账本为非用户默认
         recordBookDO.setIsUserDefault(RecordConstant.USER_DEFAULT);
         recordBookMapper.insert(recordBookDO);
+    }
+
+    @Transactional
+    @Override
+    public void addSharedBook(Integer userId, String name, String remark, Integer orderNo) {
+        RecordBookDO recordBookDO = new RecordBookDO();
+        recordBookDO.setUserId(userId);
+        recordBookDO.setName(name);
+        recordBookDO.setRemark(remark);
+        recordBookDO.setOrderNo(orderNo);
+        recordBookDO.setStatus(CommonConstants.STATUS_NORMAL);
+        recordBookDO.setIsUserDefault(RecordConstant.NOT_USER_DEFAULT);
+        recordBookDO.setBookType(RecordConstant.BOOK_TYPE_SHARED);
+        recordBookMapper.insert(recordBookDO);
+        // 创建者自动加入为全权限成员
+        sharedBookMemberService.addMember(recordBookDO.getId().intValue(), userId,
+                RecordConstant.PERM_ALL, null);
+    }
+
+    @Override
+    public List<RecordBookDO> getSharedBooksByUser(Integer userId) {
+        QueryWrapper<RecordBookDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("book_type", RecordConstant.BOOK_TYPE_SHARED);
+        queryWrapper.inSql("id",
+                "SELECT record_book_id FROM tb_shared_book_member WHERE user_id = "
+                + userId + " AND status = 0 AND delete_time IS NULL");
+        queryWrapper.orderByAsc("order_no");
+        return recordBookMapper.selectList(queryWrapper);
     }
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.SharedBookMemberMapper">
+
+    <select id="queryMembersByBookId" resultType="cn.jackbin.SimpleRecord.entity.SharedBookMemberDO">
+        SELECT t1.*
+        FROM tb_shared_book_member t1
+        WHERE t1.record_book_id = #{recordBookId}
+          AND t1.status = 0
+          AND t1.delete_time IS NULL
+        ORDER BY t1.join_time ASC
+    </select>
+
+    <select id="queryByBookAndUser" resultType="cn.jackbin.SimpleRecord.entity.SharedBookMemberDO">
+        SELECT t1.*
+        FROM tb_shared_book_member t1
+        WHERE t1.record_book_id = #{recordBookId}
+          AND t1.user_id = #{userId}
+          AND t1.status = 0
+          AND t1.delete_time IS NULL
+        LIMIT 1
+    </select>
+
+</mapper>

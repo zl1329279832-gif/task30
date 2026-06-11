@@ -91,4 +91,24 @@ public class RecordDetailDO extends BaseDO implements Serializable {
      * 报销状态
      */
     private Integer recoverableStatus;
+
+    /**
+     * 审核状态：1=待审核, 2=已入账, 3=已驳回, 4=已冲正（个人账本为null）
+     */
+    private Integer auditStatus;
+
+    /**
+     * 审核人ID
+     */
+    private Integer auditorId;
+
+    /**
+     * 审核时间
+     */
+    private Date auditTime;
+
+    /**
+     * 实际垫付人ID（共享账本中，null表示记账人即垫付人）
+     */
+    private Integer payerUserId;
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.SettlementMapper">
+
+    <select id="queryAdvancePaymentSummary" resultType="java.util.Map">
+        SELECT
+            r.user_id AS userId,
+            IFNULL(r.payer_user_id, r.user_id) AS payerUserId,
+            SUM(ABS(r.amount)) AS totalAmount
+        FROM tb_record_detail r
+        WHERE r.record_book_id = #{recordBookId}
+          AND date_format(r.occur_time, '%Y-%m') = #{yearMonth}
+          AND r.audit_status = 2
+          AND r.amount &lt; 0
+          AND r.delete_time IS NULL
+        GROUP BY r.user_id, IFNULL(r.payer_user_id, r.user_id)
+    </select>
+
+</mapper>

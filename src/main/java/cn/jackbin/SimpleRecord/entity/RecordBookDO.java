@@ -52,4 +52,9 @@ public class RecordBookDO extends BaseDO implements Serializable {
     private Integer orderNo;
 
     private Integer status;
+
+    /**
+     * 账本类型：1=个人, 2=共享
+     */
+    private Integer bookType;
 }

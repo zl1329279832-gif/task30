@@ -42,4 +42,14 @@ public interface RecordBookService extends IService<RecordBookDO> {
      * 初始化账单
      */
     void init(Integer userId);
+
+    /**
+     * 创建共享账本
+     */
+    void addSharedBook(Integer userId, String name, String remark, Integer orderNo);
+
+    /**
+     * 获取用户参与的所有共享账本
+     */
+    List<RecordBookDO> getSharedBooksByUser(Integer userId);
 }
