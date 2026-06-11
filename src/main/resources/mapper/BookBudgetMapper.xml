@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.BookBudgetMapper">
+
+    <select id="queryUsedAmountByMonth" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(ABS(amount)), 0)
+        FROM tb_record_detail
+        WHERE record_book_id = #{bookId}
+          AND DATE_FORMAT(occur_time, '%Y-%m') = #{yearMonth}
+          AND review_status IN (0, 2)
+          AND delete_time IS NULL
+          AND target_account_id IS NULL
+    </select>
+
+</mapper>

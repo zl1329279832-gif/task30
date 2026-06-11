@@ -4,6 +4,7 @@ import cn.jackbin.SimpleRecord.common.anotations.DictValue;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
@@ -91,4 +92,36 @@ public class RecordDetailDO extends BaseDO implements Serializable {
      * 报销状态
      */
     private Integer recoverableStatus;
+
+    /**
+     * 审核状态: 0=无需审核(个人), 1=待审核, 2=已入账, 3=已驳回, 4=已冲正
+     */
+    private Integer reviewStatus;
+
+    /**
+     * 审核人ID
+     */
+    private Integer reviewerId;
+
+    /**
+     * 审核时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date reviewTime;
+
+    /**
+     * 审核备注/驳回原因
+     */
+    private String reviewRemark;
+
+    /**
+     * 冲正条目指向原记录ID
+     */
+    private Long originalRecordId;
+
+    /**
+     * 乐观锁版本号
+     */
+    @Version
+    private Integer version;
 }

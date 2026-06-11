@@ -64,6 +64,36 @@ public enum CodeMsg {
     RECORD_BOOK_RELATED(700019, "账户仍有记账记录关联"),
     RECORD_ACCOUNT_RELATED(700019, "账户仍有记账记录关联"),
     RECORD_ACCOUNT_NAME_REPEAT(700020, "记账账户名称不可重复"),
+
+    // 共享账本相关 格式7001xx
+    SHARED_BOOK_PERMISSION_DENIED(700100, "共享账本权限不足"),
+    NOT_BOOK_MEMBER(700101, "您不是该账本的成员"),
+    NOT_BOOK_OWNER(700102, "仅账本所有者可执行此操作"),
+    INVALID_INVITE_CODE(700103, "邀请码无效或已过期"),
+    ALREADY_MEMBER(700104, "您已是该账本成员"),
+    INVITE_CODE_REGENERATE_FORBIDDEN(700105, "仅所有者可刷新邀请码"),
+
+    // 审核流程相关 格式7002xx
+    RECORD_NOT_PENDING(700200, "该记录不在待审核状态"),
+    RECORD_STATUS_CONFLICT(700201, "记录状态已变更，请刷新后重试"),
+    CANNOT_DELETE_POSTED_RECORD(700202, "已入账记录不可删除，请申请冲正"),
+    CANNOT_EDIT_POSTED_RECORD(700203, "已入账记录不可编辑"),
+
+    // 预算相关 格式7003xx
+    BUDGET_EXCEEDED(700300, "本月支出已超出预算"),
+    BUDGET_WARNING(700301, "本月支出已接近预算上限"),
+
+    // 月结相关 格式7004xx
+    MONTH_ALREADY_CLOSED(700400, "该月份已结算"),
+    MONTH_CLOSED_CANNOT_MODIFY(700401, "已结算月份不可修改或新增记录"),
+    PENDING_RECORDS_EXIST(700402, "该月仍有待审核记录，请先完成审核"),
+
+    // 冲正相关 格式7005xx
+    REVERSAL_NOT_BY_CREATOR(700500, "仅原始记录创建者可申请冲正"),
+    REVERSAL_MONTH_NOT_CLOSED(700501, "冲正仅在月度结算后允许"),
+    REVERSAL_ALREADY_PENDING(700502, "该记录已有待审核的冲正申请"),
+    REVERSAL_RECORD_NOT_POSTED(700503, "仅已入账的记录可申请冲正"),
+    OPERATION_IN_PROGRESS(700504, "操作正在处理中，请勿重复提交"),
     ;
 
     private final int retCode;

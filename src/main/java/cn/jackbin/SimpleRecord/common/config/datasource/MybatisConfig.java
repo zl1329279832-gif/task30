@@ -1,5 +1,6 @@
 package cn.jackbin.SimpleRecord.common.config.datasource;
 
+import com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,5 +27,13 @@ public class MybatisConfig {
     @Bean
     public MySqlInjector mySqlInjector(){
         return new MySqlInjector();
+    }
+
+    /**
+     * 乐观锁插件
+     */
+    @Bean
+    public OptimisticLockerInterceptor optimisticLockerInterceptor() {
+        return new OptimisticLockerInterceptor();
     }
 }

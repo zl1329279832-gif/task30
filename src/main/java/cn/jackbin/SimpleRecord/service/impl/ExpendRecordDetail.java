@@ -50,8 +50,8 @@ public class ExpendRecordDetail implements RecordDetailHandler {
     }
 
     @Override
-    public void handleAdd(Integer userId, RecordDetailBO bo) {
-        recordDetailService.add(userId, bo.getTargetAccountId(), bo.getRecordBookId(), bo.getRecordTypeId(), bo.getRecordCategory(),
+    public int handleAdd(Integer userId, RecordDetailBO bo) {
+        return recordDetailService.add(userId, bo.getTargetAccountId(), bo.getRecordBookId(), bo.getRecordTypeId(), bo.getRecordCategory(),
                 -bo.getAmount(), bo.getOccurTime(), bo.getTag(), bo.getRemark(), bo.getRecoverableStatus());
     }
 

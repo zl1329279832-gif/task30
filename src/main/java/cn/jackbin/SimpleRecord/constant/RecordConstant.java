@@ -59,4 +59,52 @@ public class RecordConstant {
      */
     public static final String DEFAULT_RECORD_BOOK_NAME = "默认账单";
 
+    // ========== 共享账本权限 ==========
+
+    /** 录入权限 */
+    public static final String PERM_ENTRY = "entry";
+
+    /** 审核权限 */
+    public static final String PERM_REVIEW = "review";
+
+    /** 查看权限 */
+    public static final String PERM_VIEW = "view";
+
+    /** 结算权限 */
+    public static final String PERM_SETTLEMENT = "settlement";
+
+    /** 账本类型: 个人 */
+    public static final int BOOK_TYPE_PERSONAL = 0;
+
+    /** 账本类型: 共享 */
+    public static final int BOOK_TYPE_SHARED = 1;
+
+    // ========== 审核状态 ==========
+
+    /** 无需审核(个人账本) */
+    public static final int REVIEW_NONE = 0;
+
+    /** 待审核 */
+    public static final int REVIEW_PENDING = 1;
+
+    /** 已入账 */
+    public static final int REVIEW_POSTED = 2;
+
+    /** 已驳回 */
+    public static final int REVIEW_REJECTED = 3;
+
+    /** 已冲正 */
+    public static final int REVIEW_REVERSED = 4;
+
+    // ========== 冲正审核状态 ==========
+
+    /** 冲正申请待审核 */
+    public static final int REVERSAL_PENDING = 1;
+
+    /** 冲正申请已通过 */
+    public static final int REVERSAL_APPROVED = 2;
+
+    /** 冲正申请已驳回 */
+    public static final int REVERSAL_REJECTED = 3;
+
 }

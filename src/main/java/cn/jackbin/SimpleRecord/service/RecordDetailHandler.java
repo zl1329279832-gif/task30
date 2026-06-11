@@ -18,9 +18,9 @@ public interface RecordDetailHandler {
     String LOAN_TYPE = "loanType"; // 借贷
 
     /**
-     * 记一笔
+     * 记一笔, 返回新记录ID
      */
-    void handleAdd(Integer userId, RecordDetailBO recordDetailBO);
+    int handleAdd(Integer userId, RecordDetailBO recordDetailBO);
 
     /**
      * 更新记账记录
