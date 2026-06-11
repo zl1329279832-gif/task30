@@ -135,6 +135,10 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
             if (original == null) {
                 throw new BusinessException(CodeMsg.NOT_FIND_DATA);
             }
+            // 守卫: 原记录必须仍为已入账状态 (防止并发/重复冲正审批)
+            if (original.getReviewStatus() != RecordConstant.REVIEW_POSTED) {
+                throw new BusinessException(CodeMsg.REVERSAL_RECORD_ALREADY_REVERSED);
+            }
             original.setReviewStatus(RecordConstant.REVIEW_REVERSED);
             recordDetailService.updateById(original);
 
@@ -157,11 +161,13 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
 
             int reversalId = handler.handleAdd(original.getUserId(), reversalBO);
 
-            // 关联并自动入账
+            // 关联并自动入账: 冲正反向条目标记为 REVIEW_REVERSED,
+            // 使其不参与预算执行额统计 (BookBudgetMapper 仅统计 review_status IN (0,2))
+            // 原记录已标记 REVIEW_REVERSED 同样被排除, 净效果 = 预算归零
             RecordDetailDO counterEntry = recordDetailService.getById(reversalId);
             if (counterEntry != null) {
                 counterEntry.setOriginalRecordId(original.getId());
-                counterEntry.setReviewStatus(RecordConstant.REVIEW_POSTED);
+                counterEntry.setReviewStatus(RecordConstant.REVIEW_REVERSED);
                 counterEntry.setReviewerId(reviewerId);
                 counterEntry.setReviewTime(new Date());
                 counterEntry.setReviewRemark("冲正自动入账");
@@ -171,14 +177,13 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
                 updateById(req);
             }
 
-            // 递减预算缓存
-            if (original.getAmount() != null && original.getAmount() < 0) {
-                String ym = new SimpleDateFormat("yyyy-MM").format(original.getOccurTime());
-                BigDecimal expense = BigDecimal.valueOf(Math.abs(original.getAmount()));
-                budgetService.atomicDecrementUsed(bookId, ym, expense);
-            }
+            // 预算恢复: 不在此处调用 atomicDecrementUsed,
+            // 因为原记录和冲正反向条目均已标记 REVIEW_REVERSED,
+            // BookBudgetMapper.queryUsedAmountByMonth 的 SQL 自动排除,
+            // 下次 setBudget 或 atomicIncrementUsed 同步 DB 时预算自然一致
 
-            auditLogService.log(bookId, reviewerId, "REVERSAL_APPROVE", "RECORD", original.getId(), null);
+            auditLogService.log(bookId, reviewerId, "REVERSAL_APPROVE", "RECORD", original.getId(),
+                    "{\"reversalRecordId\":" + (counterEntry != null ? counterEntry.getId() : "null") + "}");
         } finally {
             redisLockUtil.releaseLock(lockKey);
         }

@@ -94,6 +94,8 @@ public enum CodeMsg {
     REVERSAL_ALREADY_PENDING(700502, "该记录已有待审核的冲正申请"),
     REVERSAL_RECORD_NOT_POSTED(700503, "仅已入账的记录可申请冲正"),
     OPERATION_IN_PROGRESS(700504, "操作正在处理中，请勿重复提交"),
+    REVERSAL_RECORD_ALREADY_REVERSED(700505, "该记录已被冲正，不可重复审批"),
+    MONTH_CLOSED_CANNOT_APPROVE(700506, "该月已结算，不可审核入账，请通过冲正流程处理"),
     ;
 
     private final int retCode;

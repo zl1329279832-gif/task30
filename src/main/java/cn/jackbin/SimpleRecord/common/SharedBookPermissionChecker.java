@@ -4,11 +4,14 @@ import cn.jackbin.SimpleRecord.constant.CodeMsg;
 import cn.jackbin.SimpleRecord.constant.RecordConstant;
 import cn.jackbin.SimpleRecord.entity.RecordBookDO;
 import cn.jackbin.SimpleRecord.exception.BusinessException;
+import cn.jackbin.SimpleRecord.service.MonthlyClosingService;
 import cn.jackbin.SimpleRecord.service.RecordBookService;
 import cn.jackbin.SimpleRecord.service.SharedBookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -23,6 +26,10 @@ public class SharedBookPermissionChecker {
     @Autowired
     private RecordBookService recordBookService;
 
+    @Autowired
+    @Lazy
+    private MonthlyClosingService monthlyClosingService;
+
     /**
      * 校验某权限
      */
@@ -35,6 +42,16 @@ public class SharedBookPermissionChecker {
      */
     public void checkCanModifyRecord(Integer bookId, Integer userId, Date occurTime) {
         sharedBookService.checkPermission(bookId, userId, RecordConstant.PERM_ENTRY);
+        monthlyClosingService.checkNotClosed(bookId, occurTime);
+    }
+
+    /**
+     * 校验可以审核记录 (review权限 + 月未结)
+     * 月结后审核应被禁止，须通过冲正流程处理
+     */
+    public void checkCanReviewRecord(Integer bookId, Integer userId, Date occurTime) {
+        sharedBookService.checkPermission(bookId, userId, RecordConstant.PERM_REVIEW);
+        monthlyClosingService.checkNotClosed(bookId, occurTime);
     }
 
     /**

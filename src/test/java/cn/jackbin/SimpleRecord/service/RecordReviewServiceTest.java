@@ -87,11 +87,39 @@ class RecordReviewServiceTest {
     @DisplayName("重复审核 → RECORD_NOT_PENDING")
     void testDoubleApprove() {
         doNothing().when(sharedBookService).checkPermission(BOOK_ID, REVIEWER_ID, RecordConstant.PERM_REVIEW);
+
+        // 记录存在但月份未结
+        RecordDetailDO record = new RecordDetailDO();
+        record.setId(1L);
+        record.setAmount(-500.0);
+        record.setRecordBookId(BOOK_ID);
+        record.setOccurTime(new Date());
+        when(recordDetailService.getById(1L)).thenReturn(record);
+        when(monthlyClosingService.isMonthClosed(eq(BOOK_ID), anyString())).thenReturn(false);
+
         when(recordDetailService.update(any(UpdateWrapper.class))).thenReturn(false); // 0行更新
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
         assertEquals(CodeMsg.RECORD_NOT_PENDING.getRetCode(), ex.getCodeMsg().getRetCode());
+    }
+
+    @Test
+    @DisplayName("月结后审核 → MONTH_CLOSED_CANNOT_APPROVE")
+    void testApproveAfterMonthClosed() {
+        doNothing().when(sharedBookService).checkPermission(BOOK_ID, REVIEWER_ID, RecordConstant.PERM_REVIEW);
+
+        RecordDetailDO record = new RecordDetailDO();
+        record.setId(1L);
+        record.setAmount(-500.0);
+        record.setRecordBookId(BOOK_ID);
+        record.setOccurTime(new Date());
+        when(recordDetailService.getById(1L)).thenReturn(record);
+        when(monthlyClosingService.isMonthClosed(eq(BOOK_ID), anyString())).thenReturn(true);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
+        assertEquals(CodeMsg.MONTH_CLOSED_CANNOT_APPROVE.getRetCode(), ex.getCodeMsg().getRetCode());
     }
 
     @Test
