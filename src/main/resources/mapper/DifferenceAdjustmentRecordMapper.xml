@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.DifferenceAdjustmentRecordMapper">
+
+    <select id="selectByIdempotencyKey" resultType="cn.jackbin.SimpleRecord.entity.DifferenceAdjustmentRecordDO">
+        SELECT * FROM tb_difference_adjustment_record
+        WHERE idempotency_key = #{idempotencyKey} LIMIT 1
+    </select>
+
+    <select id="selectBySourcePeriod" resultType="cn.jackbin.SimpleRecord.entity.DifferenceAdjustmentRecordDO">
+        SELECT * FROM tb_difference_adjustment_record
+        WHERE book_id = #{bookId} AND source_year_month = #{sourceYearMonth}
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectByTargetPeriod" resultType="cn.jackbin.SimpleRecord.entity.DifferenceAdjustmentRecordDO">
+        SELECT * FROM tb_difference_adjustment_record
+        WHERE book_id = #{bookId} AND target_year_month = #{targetYearMonth}
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="sumAdjustmentByTargetPeriod" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(adjustment_amount), 0)
+        FROM tb_difference_adjustment_record
+        WHERE book_id = #{bookId} AND target_year_month = #{targetYearMonth} AND review_status = 2
+    </select>
+
+</mapper>

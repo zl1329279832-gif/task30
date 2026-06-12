@@ -72,4 +72,19 @@ public class ReversalRequestDO extends BaseDO implements Serializable {
     private Long reversalRecordId;
 
     private Integer status;
+
+    /**
+     * 是否跨期冲正
+     */
+    private Integer crossPeriod;
+
+    /**
+     * 关联的差额调整记录ID
+     */
+    private Long adjustmentRecordId;
+
+    /**
+     * 源期间
+     */
+    private String sourceYearMonth;
 }

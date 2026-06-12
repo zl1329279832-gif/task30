@@ -8,6 +8,8 @@ import cn.jackbin.SimpleRecord.dto.RecordDetailDTO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -62,4 +64,7 @@ public interface RecordDetailMapper extends BaseMapper<RecordDetailDO> {
      * 获取账本的总计
      */
     List<RecordDetailBookSumDTO> querySumByRecordBookIds(Integer recordTypeId, List<Integer> recordBookIds);
+
+    @Select("SELECT * FROM tb_record_detail WHERE idempotency_key = #{key} AND delete_time IS NULL LIMIT 1")
+    RecordDetailDO selectByIdempotencyKey(@Param("key") String key);
 }

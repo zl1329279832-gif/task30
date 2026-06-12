@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.BudgetCarryforwardLogMapper">
+
+    <select id="selectBySourcePeriod" resultType="cn.jackbin.SimpleRecord.entity.BudgetCarryforwardLogDO">
+        SELECT * FROM tb_budget_carryforward_log
+        WHERE book_id = #{bookId} AND source_year_month = #{sourceYearMonth} AND status = 1
+    </select>
+
+    <select id="selectByTargetPeriod" resultType="cn.jackbin.SimpleRecord.entity.BudgetCarryforwardLogDO">
+        SELECT * FROM tb_budget_carryforward_log
+        WHERE book_id = #{bookId} AND target_year_month = #{targetYearMonth} AND status = 1
+    </select>
+
+    <select id="selectByMember" resultType="cn.jackbin.SimpleRecord.entity.BudgetCarryforwardLogDO">
+        SELECT * FROM tb_budget_carryforward_log
+        WHERE book_id = #{bookId} AND member_user_id = #{memberUserId}
+          AND (source_year_month = #{yearMonth} OR target_year_month = #{yearMonth}) AND status = 1
+    </select>
+
+    <insert id="batchInsert">
+        INSERT INTO tb_budget_carryforward_log
+        (book_id, source_year_month, target_year_month, source_budget_id, category_id, account_id,
+         member_user_id, original_amount, used_amount, carryforward_amount, pending_impact_amount,
+         rule_version, rule_type, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.bookId}, #{item.sourceYearMonth}, #{item.targetYearMonth}, #{item.sourceBudgetId},
+             #{item.categoryId}, #{item.accountId}, #{item.memberUserId}, #{item.originalAmount},
+             #{item.usedAmount}, #{item.carryforwardAmount}, #{item.pendingImpactAmount},
+             #{item.ruleVersion}, #{item.ruleType}, #{item.status})
+        </foreach>
+    </insert>
+
+</mapper>

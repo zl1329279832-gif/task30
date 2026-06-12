@@ -96,6 +96,38 @@ public enum CodeMsg {
     OPERATION_IN_PROGRESS(700504, "操作正在处理中，请勿重复提交"),
     REVERSAL_RECORD_ALREADY_REVERSED(700505, "该记录已被冲正，不可重复审批"),
     MONTH_CLOSED_CANNOT_APPROVE(700506, "该月已结算，不可审核入账，请通过冲正流程处理"),
+
+    // 预算结转相关 格式7006xx
+    CARRYFORWARD_DISABLED(700600, "该账本未启用预算结转功能"),
+    CARRYFORWARD_RULE_NOT_FOUND(700601, "未找到生效的结转规则"),
+    CARRYFORWARD_ALREADY_EXECUTED(700602, "该期间结转已执行，请先回滚"),
+    CARRYFORWARD_ROLLBACK_NOT_ALLOWED(700603, "结转回滚失败：目标期间已有记录"),
+    CARRYFORWARD_PERIOD_NOT_CLOSED(700604, "源期间尚未月结，无法执行结转"),
+    CARRYFORWARD_TARGET_PERIOD_CLOSED(700605, "目标期间已月结，无法写入结转"),
+    CARRYFORWARD_RATE_INVALID(700606, "结转比例无效，需在0~1之间"),
+    CARRYFORWARD_RULE_VERSION_CONFLICT(700607, "结转规则版本冲突，请重试"),
+    CARRYFORWARD_LOCK_FAILED(700608, "结转锁获取失败，请稍后重试"),
+
+    // 差额调整相关 格式7007xx
+    ADJUSTMENT_DUPLICATE(700700, "重复的调整请求（幂等键已存在）"),
+    ADJUSTMENT_SOURCE_NOT_CLOSED(700701, "源期间未月结，应使用普通冲销"),
+    ADJUSTMENT_TARGET_CLOSED(700702, "目标期间已月结，无法计入调整"),
+    ADJUSTMENT_AMOUNT_ZERO(700703, "调整金额不能为零"),
+    ADJUSTMENT_NOT_FOUND(700704, "调整记录不存在"),
+    ADJUSTMENT_ALREADY_REVERSED(700705, "调整记录已被冲销"),
+    ADJUSTMENT_ORIGINAL_NOT_FOUND(700706, "关联的原始记录不存在"),
+    ADJUSTMENT_LOCK_FAILED(700707, "调整锁获取失败，请稍后重试"),
+
+    // 成员快照相关 格式7008xx
+    SETTLEMENT_MEMBER_NOT_FOUND(700800, "成员不存在或从未参与该账本"),
+    SETTLEMENT_SNAPSHOT_NOT_FOUND(700801, "该期间成员快照不存在"),
+    SETTLEMENT_PERIOD_NOT_CLOSED(700802, "期间未月结，无快照数据"),
+
+    // 重算相关 格式7009xx
+    RECALC_NO_ADJUSTMENT(700900, "无需重算：无关联调整记录"),
+    RECALC_VERSION_CONFLICT(700901, "快照版本冲突，请刷新后重试"),
+    RECALC_LOCK_FAILED(700902, "重算锁获取失败，请稍后重试"),
+    IDEMPOTENCY_CONFLICT(700903, "操作重复，请检查幂等键"),
     ;
 
     private final int retCode;

@@ -61,6 +61,10 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
     @Autowired
     private RedisLockUtil redisLockUtil;
 
+    @Autowired(required = false)
+    @Lazy
+    private DifferenceAdjustmentService differenceAdjustmentService;
+
     @Override
     @Transactional
     public ReversalRequestDO requestReversal(Integer bookId, Integer requesterId, Long recordId, String reason) {
@@ -102,6 +106,11 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
                 .status(0)
                 .build();
         save(request);
+
+        // 标记跨期冲正
+        request.setCrossPeriod(1);
+        request.setSourceYearMonth(yearMonth);
+        updateById(request);
 
         auditLogService.log(bookId, requesterId, "REVERSAL_REQUEST", "RECORD", recordId,
                 "{\"reason\":\"" + reason + "\"}");

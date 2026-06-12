@@ -124,4 +124,19 @@ public class RecordDetailDO extends BaseDO implements Serializable {
      */
     @Version
     private Integer version;
+
+    /**
+     * 调整记录类型: NULL=normal/CARRYFORWARD_ADJUST/DIFF_ADJUST/REVERSAL_DIFF
+     */
+    private String adjustmentRecordType;
+
+    /**
+     * 跨期来源期间
+     */
+    private String sourceYearMonth;
+
+    /**
+     * 幂等键
+     */
+    private String idempotencyKey;
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.MemberSettlementSnapshotMapper">
+
+    <select id="selectByPeriodAndMember" resultType="cn.jackbin.SimpleRecord.entity.MemberSettlementSnapshotDO">
+        SELECT * FROM tb_member_settlement_snapshot
+        WHERE book_id = #{bookId} AND year_month = #{yearMonth} AND member_user_id = #{memberUserId}
+        ORDER BY snapshot_version DESC LIMIT 1
+    </select>
+
+    <select id="selectByPeriod" resultType="cn.jackbin.SimpleRecord.entity.MemberSettlementSnapshotDO">
+        SELECT * FROM tb_member_settlement_snapshot
+        WHERE book_id = #{bookId} AND year_month = #{yearMonth}
+        ORDER BY member_user_id
+    </select>
+
+    <select id="selectMemberHistory" resultType="cn.jackbin.SimpleRecord.entity.MemberSettlementSnapshotDO">
+        SELECT * FROM tb_member_settlement_snapshot
+        WHERE book_id = #{bookId} AND member_user_id = #{memberUserId}
+        ORDER BY year_month ASC, snapshot_version DESC
+    </select>
+
+    <insert id="batchInsert">
+        INSERT INTO tb_member_settlement_snapshot
+        (book_id, year_month, member_user_id, total_income, total_expend, net_responsibility,
+         pending_count, pending_amount, budget_used, budget_overspent, snapshot_version, recalc_flag)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.bookId}, #{item.yearMonth}, #{item.memberUserId}, #{item.totalIncome},
+             #{item.totalExpend}, #{item.netResponsibility}, #{item.pendingCount}, #{item.pendingAmount},
+             #{item.budgetUsed}, #{item.budgetOverspent}, #{item.snapshotVersion}, #{item.recalcFlag})
+        </foreach>
+    </insert>
+
+</mapper>

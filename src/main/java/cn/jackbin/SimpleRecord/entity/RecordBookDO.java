@@ -67,4 +67,19 @@ public class RecordBookDO extends BaseDO implements Serializable {
      * 共享账本创建者userId
      */
     private Integer ownerUserId;
+
+    /**
+     * 是否启用结转
+     */
+    private Integer carryforwardEnabled;
+
+    /**
+     * 默认结转规则
+     */
+    private String carryforwardDefaultRule;
+
+    /**
+     * 结转金额默认过期月数
+     */
+    private Integer carryforwardExpireMonths;
 }

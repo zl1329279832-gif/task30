@@ -34,4 +34,9 @@ public interface MonthlyClosingService {
      * 分页获取月结记录
      */
     void getClosingsByPage(Integer bookId, PageBO<MonthlyClosingDO> pageBO);
+
+    /**
+     * 获取月结详情 (含结转和重算信息)
+     */
+    MonthlyClosingDO getClosingDetail(Integer bookId, String yearMonth);
 }

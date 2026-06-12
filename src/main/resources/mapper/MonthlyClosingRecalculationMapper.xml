@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.MonthlyClosingRecalculationMapper">
+
+    <select id="selectLatestVersion" resultType="cn.jackbin.SimpleRecord.entity.MonthlyClosingRecalculationDO">
+        SELECT * FROM tb_monthly_closing_recalculation
+        WHERE book_id = #{bookId} AND year_month = #{yearMonth}
+        ORDER BY recalc_version DESC LIMIT 1
+    </select>
+
+    <select id="selectRecalcHistory" resultType="cn.jackbin.SimpleRecord.entity.MonthlyClosingRecalculationDO">
+        SELECT * FROM tb_monthly_closing_recalculation
+        WHERE book_id = #{bookId} AND year_month = #{yearMonth}
+        ORDER BY recalc_version ASC
+    </select>
+
+</mapper>

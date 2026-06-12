@@ -50,4 +50,19 @@ public class BookBudgetDO extends BaseDO implements Serializable {
     private Integer warnThreshold;
 
     private Integer status;
+
+    /**
+     * 来自上期的结转金额(分)
+     */
+    private Long carryforwardAmount;
+
+    /**
+     * 结转来源期间
+     */
+    private String sourceYearMonth;
+
+    /**
+     * 产生结转的规则版本
+     */
+    private Integer ruleVersion;
 }

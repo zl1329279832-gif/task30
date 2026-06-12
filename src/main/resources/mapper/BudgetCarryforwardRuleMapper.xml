@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.BudgetCarryforwardRuleMapper">
+
+    <select id="selectActiveRule" resultType="cn.jackbin.SimpleRecord.entity.BudgetCarryforwardRuleDO">
+        SELECT * FROM tb_budget_carryforward_rule
+        WHERE book_id = #{bookId} AND year_month = #{yearMonth}
+        ORDER BY rule_version DESC LIMIT 1
+    </select>
+
+    <select id="selectRuleHistory" resultType="cn.jackbin.SimpleRecord.entity.BudgetCarryforwardRuleDO">
+        SELECT * FROM tb_budget_carryforward_rule
+        WHERE book_id = #{bookId} AND year_month = #{yearMonth}
+        ORDER BY rule_version ASC
+    </select>
+
+</mapper>

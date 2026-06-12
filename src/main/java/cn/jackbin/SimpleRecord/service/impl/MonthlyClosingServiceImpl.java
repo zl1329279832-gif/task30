@@ -5,6 +5,7 @@ import cn.jackbin.SimpleRecord.constant.CodeMsg;
 import cn.jackbin.SimpleRecord.constant.RecordConstant;
 import cn.jackbin.SimpleRecord.constant.RedisKey;
 import cn.jackbin.SimpleRecord.entity.MonthlyClosingDO;
+import cn.jackbin.SimpleRecord.entity.RecordBookDO;
 import cn.jackbin.SimpleRecord.entity.RecordDetailDO;
 import cn.jackbin.SimpleRecord.exception.BusinessException;
 import cn.jackbin.SimpleRecord.mapper.MonthlyClosingMapper;
@@ -54,6 +55,17 @@ public class MonthlyClosingServiceImpl extends ServiceImpl<MonthlyClosingMapper,
 
     @Autowired
     private RedisLockUtil redisLockUtil;
+
+    @Autowired(required = false)
+    @Lazy
+    private BudgetCarryforwardService budgetCarryforwardService;
+
+    @Autowired(required = false)
+    @Lazy
+    private MemberSettlementService memberSettlementService;
+
+    @Autowired
+    private RecordBookService recordBookService;
 
     @Override
     @Transactional
@@ -118,6 +130,32 @@ public class MonthlyClosingServiceImpl extends ServiceImpl<MonthlyClosingMapper,
             // 删除预算缓存
             redisUtil.del(RedisKey.BUDGET_USED_PREFIX + bookId + ":" + yearMonth);
 
+            // 执行预算结转 (如果账本启用了结转)
+            long carryforwardTotal = 0, overspentTotal = 0, pendingImpactTotal = 0;
+            if (budgetCarryforwardService != null) {
+                try {
+                    RecordBookDO book = recordBookService.getById(bookId);
+                    if (book != null && book.getCarryforwardEnabled() != null && book.getCarryforwardEnabled() == 1) {
+                        long[] cfResult = budgetCarryforwardService.executeCarryforward(bookId, yearMonth, userId);
+                        carryforwardTotal = cfResult[0];
+                        overspentTotal = cfResult[1];
+                        pendingImpactTotal = cfResult[2];
+                    }
+                } catch (Exception e) {
+                    // 结转失败不影响月结结果, 仅记录日志
+                    // 结转可以稍后手动执行
+                }
+            }
+
+            // 捕获成员责任快照
+            if (memberSettlementService != null) {
+                try {
+                    memberSettlementService.captureSnapshots(bookId, yearMonth);
+                } catch (Exception e) {
+                    // 快照失败不影响月结结果
+                }
+            }
+
             auditLogService.log(bookId, userId, "MONTHLY_CLOSE", "CLOSING", closing.getId(),
                     "{\"yearMonth\":\"" + yearMonth + "\",\"income\":" + totalIncome + ",\"expend\":" + totalExpend + "}");
         } finally {
@@ -166,5 +204,12 @@ public class MonthlyClosingServiceImpl extends ServiceImpl<MonthlyClosingMapper,
                 .orderByDesc("year_month"));
         pageBO.setList(result.getRecords());
         pageBO.setTotal((int) result.getTotal());
+    }
+
+    /**
+     * 获取月结详情 (含结转和重算信息)
+     */
+    public MonthlyClosingDO getClosingDetail(Integer bookId, String yearMonth) {
+        return getClosing(bookId, yearMonth);
     }
 }

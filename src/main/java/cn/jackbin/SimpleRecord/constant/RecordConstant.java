@@ -107,4 +107,38 @@ public class RecordConstant {
     /** 冲正申请已驳回 */
     public static final int REVERSAL_REJECTED = 3;
 
+    // ========== 结转 & 调整 & 快照 审计操作类型 ==========
+
+    public static final String ACTION_CARRYFORWARD_EXECUTED = "CARRYFORWARD_EXECUTED";
+    public static final String ACTION_CARRYFORWARD_ROLLBACK = "CARRYFORWARD_ROLLBACK";
+    public static final String ACTION_CARRYFORWARD_RULE_CREATED = "CARRYFORWARD_RULE_CREATED";
+    public static final String ACTION_CARRYFORWARD_RULE_UPDATED = "CARRYFORWARD_RULE_UPDATED";
+    public static final String ACTION_ADJUSTMENT_CREATED = "ADJUSTMENT_CREATED";
+    public static final String ACTION_ADJUSTMENT_APPLIED = "ADJUSTMENT_APPLIED";
+    public static final String ACTION_ADJUSTMENT_REVERSED = "ADJUSTMENT_REVERSED";
+    public static final String ACTION_SNAPSHOT_CAPTURED = "SNAPSHOT_CAPTURED";
+    public static final String ACTION_SNAPSHOT_RECALCULATED = "SNAPSHOT_RECALCULATED";
+    public static final String ACTION_CLOSING_RECALCULATED = "CLOSING_RECALCULATED";
+
+    // ========== 结转规则类型 ==========
+    public static final String CARRYFORWARD_RULE_FULL = "FULL";
+    public static final String CARRYFORWARD_RULE_PARTIAL = "PARTIAL";
+    public static final String CARRYFORWARD_RULE_NONE = "NONE";
+    public static final String CARRYFORWARD_RULE_CUSTOM = "CUSTOM";
+
+    // ========== 超支处理模式 ==========
+    public static final String OVERSPENT_CARRY_DEBT = "CARRY_DEBT";
+    public static final String OVERSPENT_WRITE_OFF = "WRITE_OFF";
+    public static final String OVERSPENT_CAP_AT_ZERO = "CAP_AT_ZERO";
+
+    // ========== 调整类型 ==========
+    public static final String ADJUST_REVERSAL_DIFF = "REVERSAL_DIFF";
+    public static final String ADJUST_SUPPLEMENT = "SUPPLEMENT";
+    public static final String ADJUST_AUDIT_DIFF = "AUDIT_DIFF";
+    public static final String ADJUST_CORRECTION = "CORRECTION";
+
+    // ========== 结转日志状态 ==========
+    public static final int CARRYFORWARD_LOG_ACTIVE = 1;
+    public static final int CARRYFORWARD_LOG_ROLLED_BACK = 2;
+
 }

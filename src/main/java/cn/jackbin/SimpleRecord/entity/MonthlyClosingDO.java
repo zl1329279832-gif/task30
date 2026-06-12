@@ -63,4 +63,35 @@ public class MonthlyClosingDO extends BaseDO implements Serializable {
     private String remark;
 
     private Integer status;
+
+    /**
+     * 快照版本号
+     */
+    private Integer snapshotVersion;
+
+    /**
+     * 结转是否已执行
+     */
+    private Integer carryforwardExecuted;
+
+    /**
+     * 结转总额(分)
+     */
+    private Long carryforwardTotal;
+
+    /**
+     * 超支总额(分)
+     */
+    private Long overspentTotal;
+
+    /**
+     * 待审核影响总额(分)
+     */
+    private Long pendingImpactTotal;
+
+    /**
+     * 最后重算时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date lastRecalcTime;
 }

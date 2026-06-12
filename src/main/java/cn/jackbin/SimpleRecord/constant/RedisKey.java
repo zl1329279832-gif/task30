@@ -26,4 +26,22 @@ public class RedisKey {
 
     /** 邀请码缓存: invite_code:{code} */
     public final static String INVITE_CODE_PREFIX = "invite_code:";
+
+    /** 结转已执行标记: carryforward:executed:{bookId}:{yearMonth} */
+    public final static String CARRYFORWARD_EXECUTED_PREFIX = "carryforward:executed:";
+
+    /** 结转锁前缀: lock:carryforward:{bookId}:{yearMonth} */
+    public final static String LOCK_CARRYFORWARD_PREFIX = "lock:carryforward:";
+
+    /** 调整记录幂等键: idemp:adj:{key} */
+    public final static String IDEMP_ADJUSTMENT_PREFIX = "idemp:adj:";
+
+    /** 调整锁前缀: lock:adjustment:{bookId}:{sourceYearMonth} */
+    public final static String LOCK_ADJUSTMENT_PREFIX = "lock:adjustment:";
+
+    /** 调整预算写入锁: lock:budget:adjust:{bookId}:{targetYearMonth} */
+    public final static String LOCK_BUDGET_ADJUST_PREFIX = "lock:budget:adjust:";
+
+    /** 重算锁前缀: lock:recalc:{bookId}:{yearMonth} */
+    public final static String LOCK_RECALC_PREFIX = "lock:recalc:";
 }
