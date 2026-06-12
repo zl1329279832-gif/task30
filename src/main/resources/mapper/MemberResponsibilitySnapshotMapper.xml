@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jackbin.SimpleRecord.mapper.MemberResponsibilitySnapshotMapper">
+
+    <select id="queryGroupedSnapshot" resultType="java.util.Map">
+        SELECT
+            rd.user_id        AS userId,
+            rd.record_category AS recordCategory,
+            rd.record_account_id AS recordAccountId,
+            IFNULL(SUM(CASE WHEN rd.amount > 0 THEN rd.amount ELSE 0 END), 0) AS totalIncome,
+            IFNULL(SUM(CASE WHEN rd.amount &lt; 0 THEN ABS(rd.amount) ELSE 0 END), 0) AS totalExpend,
+            COUNT(*) AS recordCount
+        FROM tb_record_detail rd
+        WHERE rd.record_book_id = #{bookId}
+          AND DATE_FORMAT(rd.occur_time, '%Y-%m') = #{yearMonth}
+          AND rd.review_status IN (0, 2)
+          AND rd.delete_time IS NULL
+          AND rd.target_account_id IS NULL
+        GROUP BY rd.user_id, rd.record_category, rd.record_account_id
+    </select>
+
+</mapper>

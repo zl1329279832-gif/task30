@@ -26,4 +26,10 @@ public class RedisKey {
 
     /** 邀请码缓存: invite_code:{code} */
     public final static String INVITE_CODE_PREFIX = "invite_code:";
+
+    /** 有效预算缓存: budget:effective:{bookId}:{yearMonth} */
+    public final static String BUDGET_EFFECTIVE_PREFIX = "budget:effective:";
+
+    /** 结转规则缓存: carryover:rule:{bookId} */
+    public final static String CARRYOVER_RULE_PREFIX = "carryover:rule:";
 }

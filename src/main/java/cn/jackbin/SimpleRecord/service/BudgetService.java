@@ -1,6 +1,7 @@
 package cn.jackbin.SimpleRecord.service;
 
 import cn.jackbin.SimpleRecord.entity.BookBudgetDO;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * 预算服务
  */
-public interface BudgetService {
+public interface BudgetService extends IService<BookBudgetDO> {
 
     /**
      * 设置/更新月度预算

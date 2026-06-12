@@ -107,4 +107,31 @@ public class RecordConstant {
     /** 冲正申请已驳回 */
     public static final int REVERSAL_REJECTED = 3;
 
+    // ========== 预算结转规则类型 ==========
+
+    /** 全额结转 */
+    public static final String CARRYOVER_TYPE_FULL = "FULL";
+
+    /** 按比例结转 */
+    public static final String CARRYOVER_TYPE_PERCENTAGE = "PERCENTAGE";
+
+    /** 限额结转 */
+    public static final String CARRYOVER_TYPE_CAPPED = "CAPPED";
+
+    // ========== 待审核记录处理策略 ==========
+
+    /** 忽略待审核记录 */
+    public static final String PENDING_POLICY_IGNORE = "IGNORE";
+
+    /** 预留待审核金额 */
+    public static final String PENDING_POLICY_RESERVE = "RESERVE";
+
+    // ========== 调整单类型 ==========
+
+    /** 冲正调整 */
+    public static final String ADJUSTMENT_REVERSAL = "REVERSAL";
+
+    /** 补审核调整 */
+    public static final String ADJUSTMENT_SUPPLEMENTARY = "SUPPLEMENTARY_AUDIT";
+
 }

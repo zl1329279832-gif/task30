@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,6 +46,9 @@ class RecordReviewServiceTest {
 
     @Mock
     private MonthlyClosingService monthlyClosingService;
+
+    @Mock
+    private ClosingAdjustmentService closingAdjustmentService;
 
     @Mock
     private RedisUtil redisUtil;
@@ -105,7 +109,7 @@ class RecordReviewServiceTest {
     }
 
     @Test
-    @DisplayName("月结后审核 → MONTH_CLOSED_CANNOT_APPROVE")
+    @DisplayName("月结后审核 → 补审核入账(生成调整单)")
     void testApproveAfterMonthClosed() {
         doNothing().when(sharedBookService).checkPermission(BOOK_ID, REVIEWER_ID, RecordConstant.PERM_REVIEW);
 
@@ -116,10 +120,16 @@ class RecordReviewServiceTest {
         record.setOccurTime(new Date());
         when(recordDetailService.getById(1L)).thenReturn(record);
         when(monthlyClosingService.isMonthClosed(eq(BOOK_ID), anyString())).thenReturn(true);
+        when(recordDetailService.update(any(UpdateWrapper.class))).thenReturn(true);
 
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
-        assertEquals(CodeMsg.MONTH_CLOSED_CANNOT_APPROVE.getRetCode(), ex.getCodeMsg().getRetCode());
+        assertDoesNotThrow(() -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
+
+        verify(closingAdjustmentService).createAdjustmentIdempotent(
+                eq("SUPPLEMENTARY_AUDIT:1"), eq(BOOK_ID), anyString(),
+                eq(RecordConstant.ADJUSTMENT_SUPPLEMENTARY),
+                eq(1L), isNull(), any(), any(), any(), any(), any(), any(), eq(REVIEWER_ID), anyString());
+        // 补审核不走常规预算递增
+        verify(budgetService, never()).atomicIncrementUsed(anyInt(), anyString(), any(BigDecimal.class));
     }
 
     @Test

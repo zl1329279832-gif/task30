@@ -96,6 +96,20 @@ public enum CodeMsg {
     OPERATION_IN_PROGRESS(700504, "操作正在处理中，请勿重复提交"),
     REVERSAL_RECORD_ALREADY_REVERSED(700505, "该记录已被冲正，不可重复审批"),
     MONTH_CLOSED_CANNOT_APPROVE(700506, "该月已结算，不可审核入账，请通过冲正流程处理"),
+
+    // 预算结转相关 格式7006xx
+    CARRYOVER_RULE_NOT_FOUND(700600, "未找到适用的结转规则"),
+    CARRYOVER_ALREADY_COMPUTED(700601, "该月份结转已计算，不可重复执行"),
+    CARRYOVER_INVALID_PERCENT(700602, "结转百分比必须在0-100之间"),
+    CARRYOVER_INVALID_CAP(700603, "结转上限金额必须大于0"),
+
+    // 责任快照相关 格式7007xx
+    SNAPSHOT_ALREADY_EXISTS(700700, "该月份责任快照已生成"),
+    SNAPSHOT_NOT_FOUND(700701, "未找到该月份的责任快照"),
+
+    // 调整单相关 格式7008xx
+    ADJUSTMENT_DUPLICATE(700800, "该调整已处理，请勿重复操作"),
+    ADJUSTMENT_CLOSING_NOT_FOUND(700801, "未找到对应月结记录，无法生成调整单"),
     ;
 
     private final int retCode;

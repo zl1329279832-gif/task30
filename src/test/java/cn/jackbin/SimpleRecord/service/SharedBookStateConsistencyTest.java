@@ -66,6 +66,9 @@ class SharedBookStateConsistencyTest {
     private MonthlyClosingService monthlyClosingService;
 
     @Mock
+    private ClosingAdjustmentService closingAdjustmentService;
+
+    @Mock
     private RedisUtil redisUtil;
 
     private static final Integer BOOK_ID = 1;
@@ -88,8 +91,10 @@ class SharedBookStateConsistencyTest {
     // =====================================================================
 
     @Test
-    @DisplayName("场景1a: 月结后审核待审核记录 → MONTH_CLOSED_CANNOT_APPROVE")
+    @DisplayName("场景1a: 月结后审核待审核记录 → 补审核入账(生成调整单)")
     void testApproveAfterMonthClosed_shouldFail() {
+        doNothing().when(sharedBookService).checkPermission(eq(BOOK_ID), eq(REVIEWER_ID), eq(RecordConstant.PERM_REVIEW));
+
         // 成员 A 的待审核记录
         RecordDetailDO pendingRecord = buildRecord(1L, MEMBER_A_ID, -500.0, juneDate,
                 RecordConstant.REVIEW_PENDING);
@@ -97,17 +102,18 @@ class SharedBookStateConsistencyTest {
 
         // 月结已完成
         when(monthlyClosingService.isMonthClosed(eq(BOOK_ID), eq("2026-06"))).thenReturn(true);
+        when(recordDetailService.update(any(UpdateWrapper.class))).thenReturn(true);
 
-        // 审核通过 → 应抛异常
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
-        assertEquals(CodeMsg.MONTH_CLOSED_CANNOT_APPROVE.getRetCode(),
-                ex.getCodeMsg().getRetCode());
+        // 月结后审核 → 补审核入账(生成调整单), 不抛异常
+        assertDoesNotThrow(() -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
 
-        // 验证: 预算未被修改
+        // 验证: 生成了补审核调整单
+        verify(closingAdjustmentService).createAdjustmentIdempotent(
+                eq("SUPPLEMENTARY_AUDIT:1"), eq(BOOK_ID), anyString(),
+                eq(RecordConstant.ADJUSTMENT_SUPPLEMENTARY),
+                eq(1L), isNull(), any(), any(), any(), any(), any(), any(), eq(REVIEWER_ID), anyString());
+        // 验证: 预算未通过常规路径修改(由调整单跟踪)
         verify(budgetService, never()).atomicIncrementUsed(anyInt(), anyString(), any(BigDecimal.class));
-        // 验证: 状态未被更新
-        verify(recordDetailService, never()).update(any(UpdateWrapper.class));
     }
 
     @Test
@@ -412,38 +418,36 @@ class SharedBookStateConsistencyTest {
     // =====================================================================
 
     @Test
-    @DisplayName("场景5a: 并发审核 + 月结竞争 → 月结成功后审核必须失败")
+    @DisplayName("场景5a: 并发审核 + 月结竞争 → 月结成功后审核走补审核路径")
     void testConcurrentApproveAndCloseMonth() throws Exception {
-        // 模拟两个线程: 一个审核, 一个月结
-        // 月结先完成 → 审核应失败
+        AtomicInteger monthClosed = new AtomicInteger(0);
 
-        AtomicInteger monthClosed = new AtomicInteger(0); // 0=未结, 1=已结
-
-        // 月结线程: 标记月份已结
         Thread closeMonthThread = new Thread(() -> {
             monthClosed.set(1);
         });
 
-        // 审核线程: 检查月结状态
         RecordDetailDO pendingRecord = buildRecord(1L, MEMBER_A_ID, -500.0, juneDate,
                 RecordConstant.REVIEW_PENDING);
         when(recordDetailService.getById(1L)).thenReturn(pendingRecord);
 
-        // 动态返回月结状态
         when(monthlyClosingService.isMonthClosed(eq(BOOK_ID), eq("2026-06")))
                 .thenAnswer(inv -> monthClosed.get() == 1);
 
         doNothing().when(sharedBookService).checkPermission(eq(BOOK_ID), eq(REVIEWER_ID), eq(RecordConstant.PERM_REVIEW));
+        when(recordDetailService.update(any(UpdateWrapper.class))).thenReturn(true);
 
         // 先执行月结
         closeMonthThread.start();
         closeMonthThread.join();
 
-        // 月结后审核 → 应失败
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
-        assertEquals(CodeMsg.MONTH_CLOSED_CANNOT_APPROVE.getRetCode(),
-                ex.getCodeMsg().getRetCode());
+        // 月结后审核 → 补审核入账
+        assertDoesNotThrow(() -> recordReviewService.approveRecord(BOOK_ID, REVIEWER_ID, 1L, "通过"));
+
+        verify(closingAdjustmentService).createAdjustmentIdempotent(
+                eq("SUPPLEMENTARY_AUDIT:1"), eq(BOOK_ID), anyString(),
+                eq(RecordConstant.ADJUSTMENT_SUPPLEMENTARY),
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+        verify(budgetService, never()).atomicIncrementUsed(anyInt(), anyString(), any(BigDecimal.class));
     }
 
     @Test
@@ -613,6 +617,7 @@ class SharedBookStateConsistencyTest {
         ReflectionTestUtils.setField(service, "monthlyClosingService", monthlyClosingService);
         ReflectionTestUtils.setField(service, "budgetService", budgetService);
         ReflectionTestUtils.setField(service, "auditLogService", auditLogService);
+        ReflectionTestUtils.setField(service, "closingAdjustmentService", closingAdjustmentService);
         ReflectionTestUtils.setField(service, "redisLockUtil", redisLockUtil);
         ReflectionTestUtils.setField(service, "baseMapper", reversalRequestMapper);
         return service;

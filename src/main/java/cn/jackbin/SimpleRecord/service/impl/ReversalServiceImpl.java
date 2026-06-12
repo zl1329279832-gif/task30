@@ -10,6 +10,8 @@ import cn.jackbin.SimpleRecord.exception.BusinessException;
 import cn.jackbin.SimpleRecord.mapper.ReversalRequestMapper;
 import cn.jackbin.SimpleRecord.service.*;
 import cn.jackbin.SimpleRecord.utils.RedisLockUtil;
+
+import java.math.BigDecimal;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -57,6 +59,10 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
     @Autowired
     @Lazy
     private SharedBookAuditLogService auditLogService;
+
+    @Autowired
+    @Lazy
+    private ClosingAdjustmentService closingAdjustmentService;
 
     @Autowired
     private RedisLockUtil redisLockUtil;
@@ -177,10 +183,31 @@ public class ReversalServiceImpl extends ServiceImpl<ReversalRequestMapper, Reve
                 updateById(req);
             }
 
-            // 预算恢复: 不在此处调用 atomicDecrementUsed,
-            // 因为原记录和冲正反向条目均已标记 REVIEW_REVERSED,
-            // BookBudgetMapper.queryUsedAmountByMonth 的 SQL 自动排除,
-            // 下次 setBudget 或 atomicIncrementUsed 同步 DB 时预算自然一致
+            // 生成差异调整单
+            String yearMonth = new SimpleDateFormat("yyyy-MM").format(original.getOccurTime());
+            String idempotencyKey = "REVERSAL:" + requestId + ":" + original.getId();
+
+            BigDecimal adjustIncome = BigDecimal.ZERO;
+            BigDecimal adjustExpend = BigDecimal.ZERO;
+            BigDecimal budgetImpactVal = BigDecimal.ZERO;
+
+            if (original.getAmount() != null) {
+                if (original.getAmount() > 0) {
+                    adjustIncome = BigDecimal.valueOf(-original.getAmount());
+                } else {
+                    adjustExpend = BigDecimal.valueOf(original.getAmount());
+                    budgetImpactVal = BigDecimal.valueOf(original.getAmount());
+                }
+            }
+
+            closingAdjustmentService.createAdjustmentIdempotent(idempotencyKey,
+                    bookId, yearMonth, RecordConstant.ADJUSTMENT_REVERSAL,
+                    original.getId(),
+                    counterEntry != null ? counterEntry.getId() : null,
+                    original.getUserId(), original.getRecordCategory(),
+                    original.getRecordAccountId(),
+                    adjustIncome, adjustExpend, budgetImpactVal, reviewerId,
+                    "冲正调整: " + req.getRequestReason());
 
             auditLogService.log(bookId, reviewerId, "REVERSAL_APPROVE", "RECORD", original.getId(),
                     "{\"reversalRecordId\":" + (counterEntry != null ? counterEntry.getId() : "null") + "}");

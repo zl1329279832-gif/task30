@@ -50,6 +50,10 @@ public class RecordReviewServiceImpl implements RecordReviewService {
     private MonthlyClosingService monthlyClosingService;
 
     @Autowired
+    @Lazy
+    private ClosingAdjustmentService closingAdjustmentService;
+
+    @Autowired
     private RedisUtil redisUtil;
 
     @Override
@@ -72,7 +76,38 @@ public class RecordReviewServiceImpl implements RecordReviewService {
         }
         String yearMonth = formatYearMonth(record.getOccurTime());
         if (monthlyClosingService.isMonthClosed(bookId, yearMonth)) {
-            throw new BusinessException(CodeMsg.MONTH_CLOSED_CANNOT_APPROVE);
+            // 月结后补审核: 允许入账但生成调整单, 不走常规预算递增
+            boolean updated = updateReviewStatus(recordId, RecordConstant.REVIEW_PENDING,
+                    RecordConstant.REVIEW_POSTED, reviewerId, remark);
+            if (!updated) {
+                throw new BusinessException(CodeMsg.RECORD_NOT_PENDING);
+            }
+
+            String idempotencyKey = "SUPPLEMENTARY_AUDIT:" + recordId;
+            BigDecimal adjustIncome = BigDecimal.ZERO;
+            BigDecimal adjustExpend = BigDecimal.ZERO;
+            BigDecimal budgetImpactVal = BigDecimal.ZERO;
+
+            if (record.getAmount() != null) {
+                if (record.getAmount() < 0) {
+                    adjustExpend = BigDecimal.valueOf(Math.abs(record.getAmount()));
+                    budgetImpactVal = adjustExpend;
+                } else {
+                    adjustIncome = BigDecimal.valueOf(record.getAmount());
+                }
+            }
+
+            closingAdjustmentService.createAdjustmentIdempotent(idempotencyKey,
+                    bookId, yearMonth, RecordConstant.ADJUSTMENT_SUPPLEMENTARY,
+                    recordId, null,
+                    record.getUserId(), record.getRecordCategory(),
+                    record.getRecordAccountId(),
+                    adjustIncome, adjustExpend, budgetImpactVal, reviewerId,
+                    "补充审核入账");
+
+            auditLogService.log(bookId, reviewerId, "SUPPLEMENTARY_AUDIT", "RECORD", recordId,
+                    "{\"action\":\"approve_post_close\"}");
+            return;
         }
 
         // 原子更新状态: 仅当 review_status=1(待审核) 时才更新

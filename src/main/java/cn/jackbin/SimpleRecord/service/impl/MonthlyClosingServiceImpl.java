@@ -4,6 +4,7 @@ import cn.jackbin.SimpleRecord.bo.PageBO;
 import cn.jackbin.SimpleRecord.constant.CodeMsg;
 import cn.jackbin.SimpleRecord.constant.RecordConstant;
 import cn.jackbin.SimpleRecord.constant.RedisKey;
+import cn.jackbin.SimpleRecord.entity.BookBudgetDO;
 import cn.jackbin.SimpleRecord.entity.MonthlyClosingDO;
 import cn.jackbin.SimpleRecord.entity.RecordDetailDO;
 import cn.jackbin.SimpleRecord.exception.BusinessException;
@@ -48,6 +49,18 @@ public class MonthlyClosingServiceImpl extends ServiceImpl<MonthlyClosingMapper,
     @Autowired
     @Lazy
     private SharedBookAuditLogService auditLogService;
+
+    @Autowired
+    @Lazy
+    private BudgetCarryoverService budgetCarryoverService;
+
+    @Autowired
+    @Lazy
+    private MemberResponsibilitySnapshotService memberResponsibilitySnapshotService;
+
+    @Autowired
+    @Lazy
+    private BudgetService budgetService;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -110,6 +123,17 @@ public class MonthlyClosingServiceImpl extends ServiceImpl<MonthlyClosingMapper,
                     .status(0)
                     .build();
             save(closing);
+
+            // 生成成员责任快照
+            memberResponsibilitySnapshotService.generateSnapshots(bookId, yearMonth, closing.getId());
+
+            // 执行预算结转
+            BookBudgetDO budget = budgetService.getBudget(bookId, yearMonth);
+            if (budget != null) {
+                budgetCarryoverService.computeAndApplyCarryover(
+                        bookId, yearMonth, closing.getId(),
+                        budget.getBudgetAmount(), budget.getUsedAmount());
+            }
 
             // 设置Redis标记 (无过期)
             String redisKey = RedisKey.MONTHLY_CLOSING_PREFIX + bookId + ":" + yearMonth;

@@ -48,6 +48,9 @@ class ConcurrentBookingTest {
     private SharedBookAuditLogService auditLogService;
 
     @Mock
+    private BudgetCarryoverService budgetCarryoverService;
+
+    @Mock
     private RedisUtil redisUtil;
 
     @Mock
@@ -62,6 +65,8 @@ class ConcurrentBookingTest {
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(budgetCarryoverService.getEffectiveBudget(eq(BOOK_ID), eq(YEAR_MONTH)))
+                .thenReturn(new BigDecimal("10000"));
     }
 
     @Test

@@ -45,6 +45,9 @@ class BudgetServiceTest {
     private SharedBookAuditLogService auditLogService;
 
     @Mock
+    private BudgetCarryoverService budgetCarryoverService;
+
+    @Mock
     private RedisUtil redisUtil;
 
     @Mock
@@ -60,6 +63,8 @@ class BudgetServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(budgetCarryoverService.getEffectiveBudget(eq(BOOK_ID), eq(YEAR_MONTH)))
+                .thenReturn(new BigDecimal("5000"));
     }
 
     @Test

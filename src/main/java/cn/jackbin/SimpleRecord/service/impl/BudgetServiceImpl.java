@@ -6,6 +6,7 @@ import cn.jackbin.SimpleRecord.constant.RedisKey;
 import cn.jackbin.SimpleRecord.entity.BookBudgetDO;
 import cn.jackbin.SimpleRecord.exception.BusinessException;
 import cn.jackbin.SimpleRecord.mapper.BookBudgetMapper;
+import cn.jackbin.SimpleRecord.service.BudgetCarryoverService;
 import cn.jackbin.SimpleRecord.service.BudgetService;
 import cn.jackbin.SimpleRecord.service.SharedBookAuditLogService;
 import cn.jackbin.SimpleRecord.service.SharedBookService;
@@ -36,6 +37,10 @@ public class BudgetServiceImpl extends ServiceImpl<BookBudgetMapper, BookBudgetD
     @Autowired
     @Lazy
     private SharedBookAuditLogService auditLogService;
+
+    @Autowired
+    @Lazy
+    private BudgetCarryoverService budgetCarryoverService;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -90,8 +95,9 @@ public class BudgetServiceImpl extends ServiceImpl<BookBudgetMapper, BookBudgetD
         if (budget == null) {
             return false;
         }
+        BigDecimal effectiveBudget = budgetCarryoverService.getEffectiveBudget(bookId, yearMonth);
         BigDecimal projectedUsed = getUsedAmountFromRedis(bookId, yearMonth).add(newExpenseAmount);
-        BigDecimal warnAmount = budget.getBudgetAmount()
+        BigDecimal warnAmount = effectiveBudget
                 .multiply(BigDecimal.valueOf(budget.getWarnThreshold()))
                 .divide(BigDecimal.valueOf(100));
         return projectedUsed.compareTo(warnAmount) >= 0;
@@ -121,7 +127,8 @@ public class BudgetServiceImpl extends ServiceImpl<BookBudgetMapper, BookBudgetD
             return;
         }
 
-        long budgetCents = budget.getBudgetAmount().multiply(BigDecimal.valueOf(100)).longValue();
+        BigDecimal effectiveBudget = budgetCarryoverService.getEffectiveBudget(bookId, yearMonth);
+        long budgetCents = effectiveBudget.multiply(BigDecimal.valueOf(100)).longValue();
         if (newTotal > budgetCents) {
             // 回滚
             redisTemplate.opsForValue().increment(redisKey, -amountCents);
@@ -134,7 +141,7 @@ public class BudgetServiceImpl extends ServiceImpl<BookBudgetMapper, BookBudgetD
         updateById(budget);
 
         // 预警检查
-        long warnCents = budget.getBudgetAmount()
+        long warnCents = effectiveBudget
                 .multiply(BigDecimal.valueOf(budget.getWarnThreshold()))
                 .divide(BigDecimal.valueOf(100))
                 .multiply(BigDecimal.valueOf(100)).longValue();
